@@ -1,7 +1,19 @@
 "use client";
 import { useState, useRef, ChangeEvent } from 'react';
-import { InvoiceItem, DriveFile, CUSTOMER_MEMORY } from '@/types/invoice';
+import { InvoiceItem, DriveFile } from '@/types/invoice';
 import { autoMapHeaders } from '@/lib/excelUtils';
+
+const COMPANY_NAME_KEY = 'invoice_company_name';
+const CUSTOMER_HISTORY_KEY = 'invoice_customer_history';
+
+function loadCustomerHistory(): string[] {
+    if (typeof window === 'undefined') return [];
+    try { return JSON.parse(localStorage.getItem(CUSTOMER_HISTORY_KEY) || '[]'); } catch { return []; }
+}
+
+function saveCustomerHistory(list: string[]) {
+    localStorage.setItem(CUSTOMER_HISTORY_KEY, JSON.stringify(list));
+}
 
 async function parseArrayBuffer(buffer: ArrayBuffer): Promise<{
     headers: string[];
@@ -30,6 +42,13 @@ async function parseArrayBuffer(buffer: ArrayBuffer): Promise<{
 
 export function useInvoiceLogic() {
     const [invoiceNumber, setInvoiceNumber] = useState(5091);
+    const [customerHistory, setCustomerHistory] = useState<string[]>(() => loadCustomerHistory());
+    const [companyName, setCompanyNameState] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(COMPANY_NAME_KEY) || 'The Last Renaissance Inc';
+        }
+        return 'The Last Renaissance Inc';
+    });
     const [customerName, setCustomerName] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [itemsPart2, setItemsPart2] = useState<InvoiceItem[]>([
@@ -50,13 +69,32 @@ export function useInvoiceLogic() {
     const [isLoadingDrive, setIsLoadingDrive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const matchingCustomers = Object.values(CUSTOMER_MEMORY).filter(cust =>
-        cust.name.toLowerCase().includes(customerName.toLowerCase())
+    const setCompanyName = (name: string) => {
+        setCompanyNameState(name);
+        localStorage.setItem(COMPANY_NAME_KEY, name);
+    };
+
+    const matchingCustomers = customerHistory.filter(name =>
+        name.toLowerCase().includes(customerName.toLowerCase()) && name !== customerName
     );
 
     const handleCustomerNameChange = (e: ChangeEvent<HTMLInputElement>) => {
         setCustomerName(e.target.value);
         setShowSuggestions(e.target.value.length > 0);
+    };
+
+    const saveCustomerName = (name: string) => {
+        const trimmed = name.trim();
+        if (!trimmed) return;
+        const updated = [trimmed, ...customerHistory.filter(n => n !== trimmed)].slice(0, 20);
+        setCustomerHistory(updated);
+        saveCustomerHistory(updated);
+    };
+
+    const deleteCustomerFromHistory = (name: string) => {
+        const updated = customerHistory.filter(n => n !== name);
+        setCustomerHistory(updated);
+        saveCustomerHistory(updated);
     };
 
     const updateItem = (id: string, field: keyof InvoiceItem, value: string | number) => {
@@ -165,6 +203,7 @@ export function useInvoiceLogic() {
 
     return {
         invoiceNumber, setInvoiceNumber,
+        companyName, setCompanyName,
         customerName, setCustomerName,
         showSuggestions, setShowSuggestions,
         itemsPart2,
@@ -182,6 +221,8 @@ export function useInvoiceLogic() {
         fileInputRef,
         matchingCustomers,
         handleCustomerNameChange,
+        saveCustomerName,
+        deleteCustomerFromHistory,
         updateItem,
         handleFileUpload,
         handleLoadFromDrive,

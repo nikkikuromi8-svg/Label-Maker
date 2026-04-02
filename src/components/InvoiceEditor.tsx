@@ -8,6 +8,7 @@ import PrintTemplate from './PrintTemplate';
 export default function InvoiceEditor() {
     const {
         invoiceNumber, setInvoiceNumber,
+        companyName, setCompanyName,
         customerName, setCustomerName,
         showSuggestions, setShowSuggestions,
         itemsPart2,
@@ -18,7 +19,7 @@ export default function InvoiceEditor() {
         isExtracting, hasUploadedFile,
         driveFiles, showDriveModal, setShowDriveModal, isLoadingDrive,
         fileInputRef, matchingCustomers,
-        handleCustomerNameChange, updateItem,
+        handleCustomerNameChange, saveCustomerName, deleteCustomerFromHistory, updateItem,
         handleFileUpload, handleLoadFromDrive, handleDriveFileSelect, exportToPDF,
     } = useInvoiceLogic();
 
@@ -50,7 +51,12 @@ export default function InvoiceEditor() {
                         <div>
                             <h1 className="text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-orange-400">INVOICE</h1>
                             <div className="mt-2 text-sm text-gray-300">
-                                <p className="font-bold text-sky-300 uppercase tracking-widest">The Last Renaissance Inc</p>
+                                <input
+                                    type="text"
+                                    value={companyName}
+                                    onChange={(e) => setCompanyName(e.target.value)}
+                                    className="font-bold text-sky-300 uppercase tracking-widest bg-transparent border-b border-transparent hover:border-sky-400/50 focus:border-sky-400 focus:outline-none transition-all w-full"
+                                />
                                 <p>16979 Turk Dr</p>
                                 <p>La Puente, CA 91744</p>
                             </div>
@@ -69,11 +75,14 @@ export default function InvoiceEditor() {
                     <div className="w-full md:w-1/2 space-y-4 relative z-20">
                         <h3 className="text-sm font-semibold text-sky-300 tracking-wider">BILL TO</h3>
                         <div className="relative">
-                            <input type="text" placeholder="Customer Name (Try: Tech Corp)" value={customerName} onChange={handleCustomerNameChange} onFocus={() => setShowSuggestions(customerName.length > 0)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all placeholder:text-gray-600" />
+                            <input type="text" placeholder="Customer Name" value={customerName} onChange={handleCustomerNameChange} onFocus={() => setShowSuggestions(customerName.length > 0)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} onKeyDown={(e) => { if (e.key === 'Enter' && customerName.trim()) { saveCustomerName(customerName); setShowSuggestions(false); } }} className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all placeholder:text-gray-600" />
                             {showSuggestions && matchingCustomers.length > 0 && (
                                 <ul className="absolute z-50 w-full mt-1 bg-[#111] border border-sky-400/30 rounded-lg shadow-xl overflow-hidden max-h-40 overflow-y-auto">
-                                    {matchingCustomers.map((cust) => (
-                                        <li key={cust.id} onClick={() => { setCustomerName(cust.name); setShowSuggestions(false); }} className="px-4 py-3 hover:bg-cyan-500/20 cursor-pointer text-sm text-gray-200 transition-colors border-b border-white/5 last:border-0">{cust.name}</li>
+                                    {matchingCustomers.map((name) => (
+                                        <li key={name} className="flex items-center justify-between px-4 py-3 hover:bg-cyan-500/20 transition-colors border-b border-white/5 last:border-0 group">
+                                            <span onClick={() => { setCustomerName(name); saveCustomerName(name); setShowSuggestions(false); }} className="cursor-pointer text-sm text-gray-200 flex-1">{name}</span>
+                                            <button onMouseDown={(e) => { e.preventDefault(); deleteCustomerFromHistory(name); }} className="text-gray-600 hover:text-red-400 transition-colors text-xs ml-2 opacity-0 group-hover:opacity-100">✕</button>
+                                        </li>
                                     ))}
                                 </ul>
                             )}
@@ -94,19 +103,44 @@ export default function InvoiceEditor() {
 
                 {/* Period Information */}
                 <div data-html2canvas-ignore="true" className="mb-6 overflow-hidden rounded-xl border border-white/10">
-                    <div className="bg-black/40 text-sky-300 text-sm uppercase tracking-wider p-4 border-b border-white/10 font-bold">Period Information</div>
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/[0.01]">
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-400 tracking-wider">SPECIFIC MONTH</label>
-                            <input type="month" value={periodMonth} onChange={(e) => { const val = e.target.value; setPeriodMonth(val); if (val) { const [year, month] = val.split('-'); setFromDate(`${val}-01`); const lastDay = new Date(Number(year), Number(month), 0).getDate(); setToDate(`${val}-${lastDay}`); } else { setFromDate(''); setToDate(''); } }} className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-sky-400 transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" />
+                    <div className="bg-black/40 text-sky-300 text-sm uppercase tracking-wider p-4 border-b border-white/10 font-bold flex items-center justify-between">
+                        <span>Date Range Filter</span>
+                        <span className="text-xs text-gray-500 normal-case font-normal tracking-normal">不選月份可直接填日期範圍</span>
+                    </div>
+                    <div className="p-6 bg-white/[0.01]">
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs text-gray-400 tracking-wider shrink-0">QUICK FILL BY MONTH</span>
+                            <input
+                                type="month"
+                                value={periodMonth}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setPeriodMonth(val);
+                                    if (val) {
+                                        const [year, month] = val.split('-');
+                                        setFromDate(`${val}-01`);
+                                        const lastDay = new Date(Number(year), Number(month), 0).getDate();
+                                        setToDate(`${val}-${lastDay}`);
+                                    } else {
+                                        setFromDate('');
+                                        setToDate('');
+                                    }
+                                }}
+                                className="bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-sky-400 transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                            />
+                            {periodMonth && (
+                                <button onClick={() => { setPeriodMonth(''); setFromDate(''); setToDate(''); }} className="text-xs text-gray-500 hover:text-red-400 transition-colors">✕ 清除</button>
+                            )}
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-400 tracking-wider">FROM DATE</label>
-                            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-sky-400 transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-400 tracking-wider">TO DATE</label>
-                            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-sky-400 transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs text-gray-400 tracking-wider">FROM DATE</label>
+                                <input type="date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPeriodMonth(''); }} className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-sky-400 transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs text-gray-400 tracking-wider">TO DATE</label>
+                                <input type="date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPeriodMonth(''); }} className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-sky-400 transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -178,7 +212,7 @@ export default function InvoiceEditor() {
                             <span>cloud</span> Load from Google Drive
                         </button>
                     </div>
-                    <button onClick={exportToPDF} disabled={!hasUploadedFile} className={`w-full sm:w-auto text-white font-semibold py-3 px-8 rounded-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${hasUploadedFile ? 'bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-400 hover:to-orange-400 shadow-[0_0_20px_rgba(56,189,248,0.3)]' : 'bg-gray-700 text-gray-400'}`}>
+                    <button onClick={() => { if (customerName.trim()) saveCustomerName(customerName); exportToPDF(); }} disabled={!hasUploadedFile} className={`w-full sm:w-auto text-white font-semibold py-3 px-8 rounded-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${hasUploadedFile ? 'bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-400 hover:to-orange-400 shadow-[0_0_20px_rgba(56,189,248,0.3)]' : 'bg-gray-700 text-gray-400'}`}>
                         Generate PDF
                     </button>
                 </div>
@@ -187,6 +221,7 @@ export default function InvoiceEditor() {
             <PrintTemplate
                 dataChunks={dataChunks}
                 customerName={customerName}
+                companyName={companyName}
                 invoiceNumber={invoiceNumber}
                 itemsPart2={itemsPart2}
                 total={total}

@@ -4,14 +4,15 @@ import { parseExcelDate } from '@/lib/excelUtils';
 type Props = {
     dataChunks: any[][];
     customerName: string;
+    companyName: string;
     invoiceNumber: number;
     itemsPart2: InvoiceItem[];
     total: number;
 };
 
-export default function PrintTemplate({ dataChunks, customerName, invoiceNumber, itemsPart2, total }: Props) {
+export default function PrintTemplate({ dataChunks, customerName, companyName, invoiceNumber, itemsPart2, total }: Props) {
     return (
-        <div className="absolute top-[3000px] left-[3000px] z-[-50] opacity-0 pointer-events-none flex flex-col gap-10" id="print-container">
+        <div className="fixed top-0 left-[-9999px] z-[-50] opacity-0 pointer-events-none flex flex-col gap-10" id="print-container">
             {dataChunks.map((chunk, pageIndex) => (
                 <div key={pageIndex} className="print-page w-[800px] bg-white text-gray-900 p-12 font-sans relative flex flex-col">
                     <div className="w-full">
@@ -24,7 +25,7 @@ export default function PrintTemplate({ dataChunks, customerName, invoiceNumber,
                                     <div>
                                         <h1 className="text-4xl font-bold tracking-widest text-sky-500">INVOICE</h1>
                                         <div className="mt-2 leading-relaxed tracking-wide">
-                                            <p className="text-sm font-bold text-sky-900">The Last Renaissance Inc</p>
+                                            <p className="text-sm font-bold text-sky-900">{companyName}</p>
                                             <p className="text-xs text-gray-400">16979 Turk Dr · La Puente, CA 91744</p>
                                         </div>
                                     </div>
