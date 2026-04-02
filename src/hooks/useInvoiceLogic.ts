@@ -133,15 +133,31 @@ export function useInvoiceLogic() {
                 import('jspdf'),
                 import('html-to-image'),
             ]);
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
+
+            // Capture all pages first
+            const images: string[] = [];
             for (let i = 0; i < pages.length; i++) {
-                const imgData = await htmlToImage.toPng(pages[i] as HTMLElement, { pixelRatio: 2, backgroundColor: '#ffffff' });
-                if (i > 0) pdf.addPage();
-                const imgProps = pdf.getImageProperties(imgData);
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, (imgProps.height * pdfWidth) / imgProps.width);
+                images.push(await htmlToImage.toPng(pages[i] as HTMLElement, { pixelRatio: 2, backgroundColor: '#ffffff' }));
             }
-            pdf.save(`invoice_INV-${invoiceNumber}.pdf`);
+
+            // Use A4 width (210mm), calculate height proportionally for each page
+            const A4_WIDTH_MM = 210;
+            let pdf: InstanceType<typeof jsPDF> | null = null;
+
+            for (let i = 0; i < images.length; i++) {
+                const tempPdf = new jsPDF({ unit: 'mm', format: 'a4' });
+                const imgProps = tempPdf.getImageProperties(images[i]);
+                const pageHeightMM = (imgProps.height / imgProps.width) * A4_WIDTH_MM;
+
+                if (i === 0) {
+                    pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [A4_WIDTH_MM, pageHeightMM] });
+                } else {
+                    pdf!.addPage([A4_WIDTH_MM, pageHeightMM]);
+                }
+                pdf!.addImage(images[i], 'PNG', 0, 0, A4_WIDTH_MM, pageHeightMM);
+            }
+
+            pdf!.save(`invoice_INV-${invoiceNumber}.pdf`);
         } catch (error) {
             alert('Failed to generate PDF. Error: ' + (error instanceof Error ? error.message : String(error)));
         }
