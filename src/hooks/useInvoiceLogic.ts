@@ -4,6 +4,7 @@ import { InvoiceItem, DriveFile } from '@/types/invoice';
 import { autoMapHeaders } from '@/lib/excelUtils';
 
 const COMPANY_NAME_KEY = 'invoice_company_name';
+const COMPANY_ADDRESS_KEY = 'invoice_company_address';
 const CUSTOMER_HISTORY_KEY = 'invoice_customer_history';
 
 function loadCustomerHistory(): string[] {
@@ -49,6 +50,12 @@ export function useInvoiceLogic() {
         }
         return 'The Last Renaissance Inc';
     });
+    const [companyAddress, setCompanyAddressState] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(COMPANY_ADDRESS_KEY) ?? '16979 Turk Dr · La Puente, CA 91744';
+        }
+        return '16979 Turk Dr · La Puente, CA 91744';
+    });
     const [customerName, setCustomerName] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [itemsPart2, setItemsPart2] = useState<InvoiceItem[]>([
@@ -72,6 +79,11 @@ export function useInvoiceLogic() {
     const setCompanyName = (name: string) => {
         setCompanyNameState(name);
         localStorage.setItem(COMPANY_NAME_KEY, name);
+    };
+
+    const setCompanyAddress = (address: string) => {
+        setCompanyAddressState(address);
+        localStorage.setItem(COMPANY_ADDRESS_KEY, address);
     };
 
     const matchingCustomers = customerHistory.filter(name =>
@@ -204,6 +216,7 @@ export function useInvoiceLogic() {
     return {
         invoiceNumber, setInvoiceNumber,
         companyName, setCompanyName,
+        companyAddress, setCompanyAddress,
         customerName, setCustomerName,
         showSuggestions, setShowSuggestions,
         itemsPart2,

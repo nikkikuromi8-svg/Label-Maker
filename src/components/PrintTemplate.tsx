@@ -5,12 +5,13 @@ type Props = {
     dataChunks: any[][];
     customerName: string;
     companyName: string;
+    companyAddress: string;
     invoiceNumber: number;
     itemsPart2: InvoiceItem[];
     total: number;
 };
 
-export default function PrintTemplate({ dataChunks, customerName, companyName, invoiceNumber, itemsPart2, total }: Props) {
+export default function PrintTemplate({ dataChunks, customerName, companyName, companyAddress, invoiceNumber, itemsPart2, total }: Props) {
     return (
         <div className="fixed top-0 left-[-9999px] z-[-50] opacity-0 pointer-events-none flex flex-col gap-10" id="print-container">
             {dataChunks.map((chunk, pageIndex) => (
@@ -26,7 +27,7 @@ export default function PrintTemplate({ dataChunks, customerName, companyName, i
                                         <h1 className="text-4xl font-bold tracking-widest text-sky-500">INVOICE</h1>
                                         <div className="mt-2 leading-relaxed tracking-wide">
                                             <p className="text-sm font-bold text-sky-900">{companyName}</p>
-                                            <p className="text-xs text-gray-400">16979 Turk Dr · La Puente, CA 91744</p>
+                                            {companyAddress && <p className="text-xs text-gray-400">{companyAddress}</p>}
                                         </div>
                                     </div>
                                 </div>

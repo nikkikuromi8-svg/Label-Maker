@@ -9,6 +9,7 @@ export default function InvoiceEditor() {
     const {
         invoiceNumber, setInvoiceNumber,
         companyName, setCompanyName,
+        companyAddress, setCompanyAddress,
         customerName, setCustomerName,
         showSuggestions, setShowSuggestions,
         itemsPart2,
@@ -57,8 +58,13 @@ export default function InvoiceEditor() {
                                     onChange={(e) => setCompanyName(e.target.value)}
                                     className="font-bold text-sky-300 uppercase tracking-widest bg-transparent border-b border-transparent hover:border-sky-400/50 focus:border-sky-400 focus:outline-none transition-all w-full"
                                 />
-                                <p>16979 Turk Dr</p>
-                                <p>La Puente, CA 91744</p>
+                                <input
+                                    type="text"
+                                    value={companyAddress}
+                                    onChange={(e) => setCompanyAddress(e.target.value)}
+                                    placeholder="Address (optional)"
+                                    className="text-gray-400 bg-transparent border-b border-transparent hover:border-sky-400/50 focus:border-sky-400 focus:outline-none transition-all w-full placeholder:text-gray-600"
+                                />
                             </div>
                         </div>
                     </div>
@@ -222,6 +228,7 @@ export default function InvoiceEditor() {
                 dataChunks={dataChunks}
                 customerName={customerName}
                 companyName={companyName}
+                companyAddress={companyAddress}
                 invoiceNumber={invoiceNumber}
                 itemsPart2={itemsPart2}
                 total={total}
