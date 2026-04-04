@@ -2,66 +2,84 @@
 .sku-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 10px;
 }
 
 .empty-hint {
-  text-align: center;
-  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 10px;
+  color: #c4c9d9;
   font-size: 13px;
   padding: 40px 0;
+}
+
+.empty-hint::before {
+  content: '📋';
+  font-size: 36px;
+  opacity: 0.4;
 }
 
 .sku-item {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 7px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
   margin-bottom: 6px;
   gap: 10px;
   cursor: pointer;
   transition: all 0.15s;
+  background: #fafbff;
 }
 
 .sku-item:hover {
   border-color: var(--primary);
-  background: #eff6ff;
+  background: var(--primary-light);
+  transform: translateX(2px);
 }
 
 .sku-item.selected {
   border-color: var(--primary);
-  background: #dbeafe;
+  background: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(79,110,247,0.1);
 }
 
 .sku-item-text {
   flex: 1;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   font-family: 'Courier New', monospace;
+  color: var(--text);
 }
 
 .sku-item-qty {
-  font-size: 12px;
-  color: var(--text-muted);
-  background: var(--bg);
-  padding: 2px 8px;
-  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 2px 9px;
+  border-radius: 20px;
+  border: 1px solid #c7d2fe;
 }
 
 .sku-item-del {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: #cbd5e1;
   cursor: pointer;
-  font-size: 14px;
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: color 0.2s;
+  font-size: 13px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  transition: all 0.2s;
 }
 
 .sku-item-del:hover {
   color: var(--danger);
+  background: #fff1f2;
 }
 
 /* List Footer */
@@ -72,10 +90,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  background: #fafbff;
 }
 
 #totalCount {
   font-size: 12px;
+  font-weight: 600;
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -88,40 +108,51 @@
 
 .printer-select {
   font-size: 12px;
-  padding: 6px 8px;
-  max-width: 140px;
+  padding: 7px 10px;
+  max-width: 148px;
+  border-radius: 8px;
 }
 
 .btn-preview {
-  background: #7c3aed;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(109,40,217,0.25);
 }
 
-.btn-preview:hover { background: #6d28d9; }
-.btn-preview:disabled { background: #94a3b8; cursor: not-allowed; }
+.btn-preview:hover {
+  background: linear-gradient(135deg, #6d28d9, #5b21b6);
+  box-shadow: 0 4px 10px rgba(109,40,217,0.35);
+}
+
+.btn-preview:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
 
 .btn-print {
-  background: #16a34a;
+  background: linear-gradient(135deg, #16a34a, #15803d);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(21,128,61,0.25);
 }
 
-.btn-print:hover { background: #15803d; }
-.btn-print:disabled { background: #94a3b8; cursor: not-allowed; }
+.btn-print:hover {
+  background: linear-gradient(135deg, #15803d, #166534);
+  box-shadow: 0 4px 10px rgba(21,128,61,0.35);
+}
+
+.btn-print:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }

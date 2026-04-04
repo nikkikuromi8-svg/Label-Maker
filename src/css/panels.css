@@ -2,33 +2,39 @@
 .tab-bar {
   display: flex;
   border-bottom: 1px solid var(--border);
+  background: #fafbff;
 }
 
 .tab {
   flex: 1;
-  padding: 10px 8px;
+  padding: 11px 8px;
   border: none;
   background: none;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 500;
   color: var(--text-muted);
   transition: all 0.2s;
   font-family: inherit;
+  border-bottom: 2px solid transparent;
+  letter-spacing: 0.3px;
 }
 
 .tab.active {
   color: var(--primary);
   border-bottom: 2px solid var(--primary);
-  font-weight: 600;
+  font-weight: 700;
+  background: white;
 }
 
 .tab:hover:not(.active) {
-  background: var(--bg);
+  color: var(--text);
+  background: var(--primary-light);
 }
 
 .tab-content {
   display: none;
-  padding: 16px;
+  padding: 18px;
   flex: 1;
   overflow-y: auto;
 }
@@ -36,162 +42,5 @@
 .tab-content.active {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-/* Form */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.form-group label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-input[type="text"],
-input[type="number"],
-select {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 10px;
-  font-size: 14px;
-  font-family: inherit;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-input[type="text"]:focus,
-input[type="number"]:focus,
-select:focus {
-  border-color: var(--primary);
-}
-
-.input-large { width: 100%; }
-.input-small { width: 80px; }
-
-/* Buttons */
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 9px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  width: 100%;
-  font-family: inherit;
-  transition: background 0.2s;
-}
-
-.btn-primary:hover {
-  background: var(--primary-dark);
-}
-
-.btn-danger-sm {
-  background: none;
-  border: 1px solid var(--danger);
-  color: var(--danger);
-  border-radius: 5px;
-  padding: 4px 10px;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-}
-
-.btn-danger-sm:hover {
-  background: var(--danger);
-  color: white;
-}
-
-/* Upload Zone */
-.upload-zone {
-  border: 2px dashed var(--border);
-  border-radius: 8px;
-  padding: 24px 16px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.upload-zone:hover, .upload-zone.drag-over {
-  border-color: var(--primary);
-  background: #eff6ff;
-}
-
-.upload-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
-}
-
-.upload-zone p {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin: 2px 0;
-}
-
-.upload-hint {
-  font-size: 11px !important;
-  color: #94a3b8 !important;
-}
-
-/* OCR */
-.ocr-status {
-  font-size: 13px;
-  color: var(--text-muted);
-  text-align: center;
-  padding: 4px 0;
-  min-height: 20px;
-}
-
-.ocr-preview {
-  text-align: center;
-}
-
-.ocr-preview img {
-  max-width: 100%;
-  max-height: 120px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  object-fit: contain;
-}
-
-.ocr-result {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Batch */
-.batch-info {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
-
-.batch-hint {
-  background: #f8fafc;
-  border-radius: 6px;
-  padding: 10px 12px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.batch-hint p {
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.batch-hint ul {
-  padding-left: 16px;
-}
-
-.batch-hint li {
-  margin: 2px 0;
+  gap: 14px;
 }

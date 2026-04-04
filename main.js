@@ -97,11 +97,41 @@ ipcMain.handle('preview-pdf', async (event, options) => {
   @media print {
     @page { size: ${options.width}mm ${options.height}mm; margin: 0; }
     .toolbar { display: none !important; }
-    html, body { background: white; display: block; width: ${options.width}mm; height: auto; padding: 0 !important; margin: 0 !important; }
-    .label-wrap { display: block; padding: 0; margin: 0; }
-    .label-page { box-shadow: none; }
-    .label-page:not(:last-child) { page-break-after: always; }
-    .label-page:last-child { page-break-after: avoid; margin: 0; }
+    html, body {
+      display: block !important;
+      width: ${options.width}mm !important;
+      height: auto !important;
+      min-height: 0 !important;
+      background: white !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: visible !important;
+    }
+    .label-wrap {
+      display: block !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      gap: 0 !important;
+      width: ${options.width}mm !important;
+    }
+    .label-page {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: ${options.justifyContent} !important;
+      width: ${options.width}mm !important;
+      height: ${options.height}mm !important;
+      box-shadow: none !important;
+      margin: 0 !important;
+      padding: 8mm !important;
+      overflow: hidden !important;
+      page-break-after: always;
+      break-after: page;
+      page-break-inside: avoid;
+    }
+    .label-page:last-child {
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+    }
   }
   body {
     background: #e5e7eb;
