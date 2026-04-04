@@ -33,28 +33,40 @@ function setupOCR() {
   })
 }
 
-// 用 ZXing 解條形碼
-async function tryBarcode(imageUrl) {
+// 把圖片畫到 canvas，可選旋轉角度，回傳 ImageData
+function imageToCanvas(img, rotateDeg) {
+  const canvas = document.createElement('canvas')
+  const rad = rotateDeg * Math.PI / 180
+  const sin = Math.abs(Math.sin(rad))
+  const cos = Math.abs(Math.cos(rad))
+  canvas.width = Math.round(img.width * cos + img.height * sin)
+  canvas.height = Math.round(img.width * sin + img.height * cos)
+  const ctx = canvas.getContext('2d')
+  ctx.translate(canvas.width / 2, canvas.height / 2)
+  ctx.rotate(rad)
+  ctx.drawImage(img, -img.width / 2, -img.height / 2)
+  return canvas
+}
+
+// 用 ZXing 解條形碼，嘗試多個旋轉角度
+async function tryBarcode(img) {
+  if (typeof ZXingBrowser === 'undefined') return null
   try {
-    const hints = new Map()
-    const formats = [
-      ZXingBrowser.BarcodeFormat.CODE_128,
-      ZXingBrowser.BarcodeFormat.CODE_39,
-      ZXingBrowser.BarcodeFormat.EAN_13,
-      ZXingBrowser.BarcodeFormat.EAN_8,
-      ZXingBrowser.BarcodeFormat.UPC_A,
-      ZXingBrowser.BarcodeFormat.QR_CODE,
-    ]
-    hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats)
-    const reader = new ZXingBrowser.BrowserMultiFormatReader(hints)
-    const img = new Image()
-    img.src = imageUrl
-    await new Promise((res, rej) => { img.onload = res; img.onerror = rej })
-    const result = await reader.decodeFromImageElement(img)
-    return result.getText()
+    const reader = new ZXingBrowser.BrowserMultiFormatReader()
+    // 嘗試 0°, 90°, 270° 三個角度
+    for (const angle of [0, 90, 270]) {
+      try {
+        const canvas = imageToCanvas(img, angle)
+        const result = await reader.decodeFromCanvas(canvas)
+        if (result) return result.getText()
+      } catch(e) {
+        // 繼續嘗試下一個角度
+      }
+    }
   } catch(e) {
-    return null
+    console.warn('ZXing error:', e)
   }
+  return null
 }
 
 async function processImage(file) {
@@ -70,8 +82,13 @@ async function processImage(file) {
   status.textContent = '⏳ 正在識別條形碼...'
 
   try {
-    // 先嘗試條形碼解碼
-    const barcodeResult = await tryBarcode(imageUrl)
+    // 先載入圖片
+    const img = new Image()
+    img.src = imageUrl
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej })
+
+    // 嘗試條形碼解碼
+    const barcodeResult = await tryBarcode(img)
     if (barcodeResult) {
       document.getElementById('ocrSkuInput').value = barcodeResult
       result.style.display = 'flex'
