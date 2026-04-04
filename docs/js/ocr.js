@@ -55,11 +55,12 @@ async function processImage(file) {
       }
     })
 
-    const skuCandidates = text.split(/[\n\r\s]+/)
-      .map(s => s.trim())
-      .filter(s => s.length > 2)
+    const tokens = text.split(/[\n\r\s]+/).map(s => s.trim()).filter(s => s.length > 2)
 
-    const bestSku = skuCandidates.sort((a, b) => b.length - a.length)[0] || text.trim()
+    // 優先匹配條形碼 SKU：字母+數字混合，6-15字符
+    const skuPattern = /^[A-Z0-9]{6,15}$/i
+    const skuMatch = tokens.find(s => skuPattern.test(s) && /[A-Z]/i.test(s) && /[0-9]/.test(s))
+    const bestSku = skuMatch || tokens.sort((a, b) => b.length - a.length)[0] || text.trim()
 
     document.getElementById('ocrSkuInput').value = bestSku
     result.style.display = 'flex'
