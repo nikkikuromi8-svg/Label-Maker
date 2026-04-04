@@ -1,0 +1,6 @@
+console.log('versions.electron:', process.versions.electron)
+console.log('ELECTRON_RUN_AS_NODE:', process.env.ELECTRON_RUN_AS_NODE)
+const e = require('electron')
+console.log('type:', typeof e)
+console.log('value slice:', String(e).slice(0, 80))
+process.exit(0)

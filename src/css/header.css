@@ -1,0 +1,41 @@
+/* Header */
+.header {
+  background: #1e293b;
+  color: white;
+  padding: 0 20px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-title h1 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.logo {
+  font-size: 22px;
+}
+
+.btn-settings {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.btn-settings:hover {
+  background: rgba(255,255,255,0.2);
+}
