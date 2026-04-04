@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "node start.js",
-    "build": "electron-builder --win"
+    "build": "set CSC_IDENTITY_AUTO_DISCOVERY=false && electron-builder --win"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +15,7 @@
     "productName": "Label Maker",
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.ico"
+      "signtoolOptions": null
     },
     "nsis": {
       "oneClick": false,
@@ -24,6 +24,7 @@
     },
     "files": [
       "main.js",
+      "start.js",
       "src/**/*",
       "assets/**/*",
       "node_modules/**/*"
