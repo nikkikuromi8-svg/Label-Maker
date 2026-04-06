@@ -8,16 +8,17 @@ function loadPrinters() {
 
 // 將標籤 HTML 注入動態 style + 隱藏 div，觸發 window.print()
 function printLabels() {
-  if (skuList.length === 0) {
-    alert('請先添加 SKU')
+  const printItems = skuList.filter(item => item.status !== 'printed')
+  if (printItems.length === 0) {
+    alert(skuList.length === 0 ? '請先添加 SKU' : '沒有待打印的 SKU')
     return
   }
 
   const justifyMap = { center: 'center', left: 'flex-start', right: 'flex-end' }
   const justifyContent = justifyMap[settings.textAlign] || 'center'
 
-  // 建立標籤 HTML 片段
-  const labelsHtml = skuList.map(item =>
+  // 建立標籤 HTML 片段（只包含待打印項目）
+  const labelsHtml = printItems.map(item =>
     Array(item.qty).fill(null).map(() =>
       `<div class="lm-print-page"><div class="lm-print-sku">${escapeHtml(item.sku)}</div></div>`
     ).join('')
@@ -80,12 +81,14 @@ function printLabels() {
   // 觸發打印
   window.print()
 
-  // 打印對話框關閉後清理並清空列表
+  // 打印對話框關閉後清理並標記為已打印
   const cleanup = () => {
     styleEl.remove()
     container.innerHTML = ''
     window.removeEventListener('afterprint', cleanup)
-    skuList = []
+    skuList.forEach(item => {
+      if (item.status !== 'printed') item.status = 'printed'
+    })
     selectedIndex = -1
     renderList()
     updatePreview('SKU-EXAMPLE')
@@ -95,8 +98,9 @@ function printLabels() {
 
 // 預覽：在新分頁開啟完整標籤 HTML，瀏覽器可直接預覽或打印
 function previewLabels() {
-  if (skuList.length === 0) {
-    alert('請先添加 SKU')
+  const printItems = skuList.filter(item => item.status !== 'printed')
+  if (printItems.length === 0) {
+    alert(skuList.length === 0 ? '請先添加 SKU' : '沒有待打印的 SKU')
     return
   }
 

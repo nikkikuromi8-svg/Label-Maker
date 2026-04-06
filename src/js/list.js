@@ -114,31 +114,52 @@ function addToList(sku, qty) {
   const existing = skuList.find(item => item.sku === sku)
   if (existing) {
     existing.qty += qty
+    if (existing.status === 'printed') existing.status = 'pending'
   } else {
-    skuList.push({ sku, qty })
+    skuList.push({ sku, qty, status: 'pending' })
   }
   renderList()
   updatePreview(sku)
 }
 
+function togglePrintStatus(e, index) {
+  e.stopPropagation()
+  const item = skuList[index]
+  if (!item) return
+  item.status = item.status === 'printed' ? 'reprint' : 'printed'
+  renderList()
+  if (skuList[selectedIndex]) updatePreview(skuList[selectedIndex].sku)
+}
+
 function renderList() {
   const container = document.getElementById('skuList')
-  const total = skuList.reduce((sum, item) => sum + item.qty, 0)
-  document.getElementById('totalCount').textContent = '共 ' + total + ' 個標籤'
+  const printableQty = skuList.filter(item => item.status !== 'printed').reduce((s, i) => s + i.qty, 0)
+  const totalQty = skuList.reduce((s, item) => s + item.qty, 0)
+  document.getElementById('totalCount').textContent =
+    printableQty === totalQty
+      ? '共 ' + totalQty + ' 個標籤'
+      : '待打印 ' + printableQty + ' / 共 ' + totalQty + ' 個'
 
   if (skuList.length === 0) {
     container.innerHTML = '<div class="empty-hint">尚未添加任何 SKU</div>'
     return
   }
 
-  container.innerHTML = skuList.map((item, i) => `
-    <div class="sku-item ${i === selectedIndex ? 'selected' : ''}"
-         onclick="selectItem(${i})" data-index="${i}">
-      <span class="sku-item-text">${escapeHtml(item.sku)}</span>
-      <span class="sku-item-qty">×${item.qty}</span>
-      <button class="sku-item-del" onclick="removeItem(event, ${i})">✕</button>
-    </div>
-  `).join('')
+  container.innerHTML = skuList.map((item, i) => {
+    const status = item.status || 'pending'
+    const statusBtn = status !== 'pending'
+      ? `<button class="sku-status-btn ${status}" onclick="togglePrintStatus(event, ${i})" title="${status === 'printed' ? '點擊重打' : '取消重打'}">${status === 'printed' ? '✓' : '↺'}</button>`
+      : ''
+    return `
+      <div class="sku-item ${status} ${i === selectedIndex ? 'selected' : ''}"
+           onclick="selectItem(${i})" data-index="${i}">
+        <span class="sku-item-text">${escapeHtml(item.sku)}</span>
+        <span class="sku-item-qty">×${item.qty}</span>
+        ${statusBtn}
+        <button class="sku-item-del" onclick="removeItem(event, ${i})">✕</button>
+      </div>
+    `
+  }).join('')
 }
 
 function selectItem(index) {

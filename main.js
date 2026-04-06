@@ -218,5 +218,12 @@ ipcMain.handle('preview-pdf', async (event, options) => {
     webPreferences: { nodeIntegration: false, contextIsolation: true }
   })
   await previewWin.loadFile(tempPreview)
-  return { success: true }
+
+  // 等待預覽視窗關閉後才回傳，讓主視窗在用戶打印完畢後再更新狀態
+  return new Promise((resolve) => {
+    previewWin.on('closed', () => {
+      try { fs.unlinkSync(tempPreview) } catch(e) {}
+      resolve({ success: true })
+    })
+  })
 })

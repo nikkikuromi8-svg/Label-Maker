@@ -17,8 +17,9 @@ async function loadPrinters() {
 }
 
 document.getElementById('previewBtn').addEventListener('click', async () => {
-  if (skuList.length === 0) {
-    alert('請先添加 SKU')
+  const printItems = skuList.filter(item => item.status !== 'printed')
+  if (printItems.length === 0) {
+    alert(skuList.length === 0 ? '請先添加 SKU' : '沒有待打印的 SKU')
     return
   }
   const btn = document.getElementById('previewBtn')
@@ -26,7 +27,7 @@ document.getElementById('previewBtn').addEventListener('click', async () => {
   btn.textContent = '⏳ 生成中...'
 
   const justifyMap = { center: 'center', left: 'flex-start', right: 'flex-end' }
-  const labelsHtml = skuList.map(item =>
+  const labelsHtml = printItems.map(item =>
     Array(item.qty).fill(null).map(() =>
       `<div class="label-page"><div class="label-sku">${escapeHtml(item.sku)}</div></div>`
     ).join('')
@@ -51,8 +52,9 @@ document.getElementById('previewBtn').addEventListener('click', async () => {
 })
 
 document.getElementById('printBtn').addEventListener('click', async () => {
-  if (skuList.length === 0) {
-    alert('請先添加 SKU')
+  const printItems = skuList.filter(item => item.status !== 'printed')
+  if (printItems.length === 0) {
+    alert(skuList.length === 0 ? '請先添加 SKU' : '沒有待打印的 SKU')
     return
   }
   const btn = document.getElementById('printBtn')
@@ -60,7 +62,7 @@ document.getElementById('printBtn').addEventListener('click', async () => {
   btn.textContent = '⏳ 生成中...'
 
   const justifyMap = { center: 'center', left: 'flex-start', right: 'flex-end' }
-  const labelsHtml = skuList.map(item =>
+  const labelsHtml = printItems.map(item =>
     Array(item.qty).fill(null).map(() =>
       `<div class="label-page"><div class="label-sku">${escapeHtml(item.sku)}</div></div>`
     ).join('')
@@ -78,8 +80,10 @@ document.getElementById('printBtn').addEventListener('click', async () => {
       justifyContent: justifyMap[settings.textAlign] || 'center',
       printerName
     })
-    // 打印後清空列表
-    skuList = []
+    // 打印後標記為已打印（保留在列表）
+    skuList.forEach(item => {
+      if (item.status !== 'printed') item.status = 'printed'
+    })
     selectedIndex = -1
     renderList()
     updatePreview('SKU-EXAMPLE')

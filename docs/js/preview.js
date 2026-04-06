@@ -27,7 +27,7 @@ function updateLabelPreviewSize() {
 
 function buildLabelHtml() {
   const justifyMap = { center: 'center', left: 'flex-start', right: 'flex-end' }
-  const labelsHtml = skuList.map(item =>
+  const labelsHtml = skuList.filter(item => item.status !== 'printed').map(item =>
     Array(item.qty).fill(null).map(() => `
       <div class="label-page">
         <div class="label-sku">${escapeHtml(item.sku)}</div>
