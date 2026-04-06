@@ -80,12 +80,15 @@ function printLabels() {
   // 觸發打印
   window.print()
 
-  // 打印對話框關閉後清理動態元素
-  // afterprint 事件在打印完成或取消後觸發
+  // 打印對話框關閉後清理並清空列表
   const cleanup = () => {
     styleEl.remove()
     container.innerHTML = ''
     window.removeEventListener('afterprint', cleanup)
+    skuList = []
+    selectedIndex = -1
+    renderList()
+    updatePreview('SKU-EXAMPLE')
   }
   window.addEventListener('afterprint', cleanup)
 }

@@ -78,6 +78,11 @@ document.getElementById('printBtn').addEventListener('click', async () => {
       justifyContent: justifyMap[settings.textAlign] || 'center',
       printerName
     })
+    // 打印後清空列表
+    skuList = []
+    selectedIndex = -1
+    renderList()
+    updatePreview('SKU-EXAMPLE')
   } catch(e) {
     alert('打印出錯: ' + e.message)
   } finally {
