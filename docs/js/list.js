@@ -2,22 +2,98 @@
 
 var skuList = []
 var selectedIndex = -1
+var dropdownActiveIndex = -1
+
+// ---- 歷史記錄 ----
+function loadSkuHistory() {
+  try { return JSON.parse(localStorage.getItem('skuHistory') || '[]') } catch(e) { return [] }
+}
+
+function saveToHistory(sku) {
+  let history = loadSkuHistory()
+  history = [sku, ...history.filter(s => s !== sku)].slice(0, 30)
+  localStorage.setItem('skuHistory', JSON.stringify(history))
+}
+
+// ---- 下拉選單 ----
+function renderDropdown(keyword) {
+  const dropdown = document.getElementById('skuDropdown')
+  const history = loadSkuHistory()
+  const filtered = keyword
+    ? history.filter(s => s.toUpperCase().includes(keyword.toUpperCase()))
+    : history
+
+  if (filtered.length === 0) {
+    dropdown.innerHTML = keyword
+      ? `<div class="sku-dropdown-empty">沒有符合的記錄</div>`
+      : `<div class="sku-dropdown-empty">尚無歷史記錄</div>`
+  } else {
+    const header = keyword ? '搜尋結果' : '最近使用'
+    dropdown.innerHTML = `<div class="sku-dropdown-header">${header}</div>` +
+      filtered.map((s, i) => `
+        <div class="sku-dropdown-item" data-sku="${escapeHtml(s)}" data-i="${i}">
+          <span class="sku-drop-icon">${keyword ? '🔍' : '🕒'}</span>
+          ${escapeHtml(s)}
+        </div>`).join('')
+    dropdown.querySelectorAll('.sku-dropdown-item').forEach(el => {
+      el.addEventListener('mousedown', e => {
+        e.preventDefault()
+        document.getElementById('skuInput').value = el.dataset.sku
+        closeDropdown()
+      })
+    })
+  }
+  dropdownActiveIndex = -1
+  dropdown.classList.add('open')
+}
+
+function closeDropdown() {
+  document.getElementById('skuDropdown').classList.remove('open')
+  dropdownActiveIndex = -1
+}
 
 function setupManualInput() {
   const skuInput = document.getElementById('skuInput')
   const qtyInput = document.getElementById('qtyInput')
 
+  skuInput.addEventListener('focus', () => renderDropdown(skuInput.value.trim()))
+  skuInput.addEventListener('input', () => renderDropdown(skuInput.value.trim()))
+
+  skuInput.addEventListener('keydown', e => {
+    const dropdown = document.getElementById('skuDropdown')
+    const items = dropdown.querySelectorAll('.sku-dropdown-item')
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      dropdownActiveIndex = Math.min(dropdownActiveIndex + 1, items.length - 1)
+      items.forEach((el, i) => el.classList.toggle('active', i === dropdownActiveIndex))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      dropdownActiveIndex = Math.max(dropdownActiveIndex - 1, -1)
+      items.forEach((el, i) => el.classList.toggle('active', i === dropdownActiveIndex))
+    } else if (e.key === 'Enter') {
+      if (dropdownActiveIndex >= 0 && items[dropdownActiveIndex]) {
+        e.preventDefault()
+        skuInput.value = items[dropdownActiveIndex].dataset.sku
+        closeDropdown()
+      } else {
+        closeDropdown()
+        document.getElementById('addManualSku').click()
+      }
+    } else if (e.key === 'Escape') {
+      closeDropdown()
+    }
+  })
+
+  skuInput.addEventListener('blur', () => setTimeout(closeDropdown, 150))
+
   document.getElementById('addManualSku').addEventListener('click', () => {
     const sku = skuInput.value.trim()
     const qty = parseInt(qtyInput.value) || 1
     if (!sku) { skuInput.focus(); return }
+    saveToHistory(sku)
     addToList(sku, qty)
     skuInput.value = ''
     skuInput.focus()
-  })
-
-  skuInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('addManualSku').click()
   })
 }
 

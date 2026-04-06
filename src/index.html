@@ -37,7 +37,10 @@
         <div class="tab-content active" id="tab-manual">
           <div class="form-group">
             <label>SKU 編號</label>
-            <input type="text" id="skuInput" placeholder="輸入 SKU..." class="input-large">
+            <div class="sku-input-wrap">
+              <input type="text" id="skuInput" placeholder="輸入 SKU..." class="input-large" autocomplete="off">
+              <div class="sku-dropdown" id="skuDropdown"></div>
+            </div>
           </div>
           <div class="form-group">
             <label>數量</label>
