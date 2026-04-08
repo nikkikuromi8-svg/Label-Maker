@@ -6,7 +6,6 @@
 async function robustScan(img) {
   if (typeof ZXingBrowser === 'undefined') throw new Error('SCAN_FAILED')
 
-  const SKU_PATTERN = /^[A-Z0-9]{5,20}$/i
   const reader = new ZXingBrowser.BrowserMultiFormatReader()
   const ROTATIONS = [0, 90, 180, 270]
   const SCALES    = [1, 1.5, 1.2, 0.5]
@@ -90,12 +89,12 @@ async function robustScan(img) {
     return out
   }
 
-  // ZXing 解碼 + SKU 格式校驗
+  // ZXing 解碼（取得任何結果即回傳）
   async function tryDecode(canvas) {
     try {
       const result = await reader.decodeFromCanvas(canvas)
-      const text = result.getText().trim().toUpperCase()
-      if (SKU_PATTERN.test(text)) return text
+      const text = result.getText().trim()
+      if (text.length > 0) return text
     } catch(e) { /* 繼續下一個策略 */ }
     return null
   }
