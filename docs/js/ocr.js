@@ -33,41 +33,6 @@ function setupOCR() {
   })
 }
 
-// 把圖片畫到 canvas，可選旋轉角度，回傳 ImageData
-function imageToCanvas(img, rotateDeg) {
-  const canvas = document.createElement('canvas')
-  const rad = rotateDeg * Math.PI / 180
-  const sin = Math.abs(Math.sin(rad))
-  const cos = Math.abs(Math.cos(rad))
-  canvas.width = Math.round(img.width * cos + img.height * sin)
-  canvas.height = Math.round(img.width * sin + img.height * cos)
-  const ctx = canvas.getContext('2d')
-  ctx.translate(canvas.width / 2, canvas.height / 2)
-  ctx.rotate(rad)
-  ctx.drawImage(img, -img.width / 2, -img.height / 2)
-  return canvas
-}
-
-// 用 ZXing 解條形碼，嘗試多個旋轉角度
-async function tryBarcode(img) {
-  if (typeof ZXingBrowser === 'undefined') return null
-  try {
-    const reader = new ZXingBrowser.BrowserMultiFormatReader()
-    // 嘗試 0°, 90°, 270° 三個角度
-    for (const angle of [0, 90, 270]) {
-      try {
-        const canvas = imageToCanvas(img, angle)
-        const result = await reader.decodeFromCanvas(canvas)
-        if (result) return result.getText()
-      } catch(e) {
-        // 繼續嘗試下一個角度
-      }
-    }
-  } catch(e) {
-    console.warn('ZXing error:', e)
-  }
-  return null
-}
 
 async function processImage(file) {
   const status = document.getElementById('ocrStatus')
@@ -87,18 +52,18 @@ async function processImage(file) {
     img.src = imageUrl
     await new Promise((res, rej) => { img.onload = res; img.onerror = rej })
 
-    // 嘗試條形碼解碼
-    const barcodeResult = await tryBarcode(img)
-    if (barcodeResult) {
-      document.getElementById('ocrSkuInput').value = barcodeResult
+    // 用 robustScan 嘗試條形碼解碼（多策略自我修復）
+    try {
+      const sku = await robustScan(img)
+      document.getElementById('ocrSkuInput').value = sku
       result.style.display = 'flex'
       result.style.flexDirection = 'column'
       result.style.gap = '8px'
       status.textContent = '✅ 條形碼識別成功，請確認 SKU'
       return
-    }
+    } catch(e) { /* 繼續退用 OCR */ }
 
-    // 條形碼失敗，退用 OCR
+    // 條形碼全策略失敗，退用 Tesseract OCR
     status.textContent = '⏳ 條形碼未識別，嘗試文字識別...'
     const { data: { text } } = await Tesseract.recognize(file, 'eng', {
       logger: m => {
