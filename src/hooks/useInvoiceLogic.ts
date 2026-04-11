@@ -5,6 +5,7 @@ import { autoMapHeaders } from '@/lib/excelUtils';
 
 const COMPANY_NAME_KEY = 'invoice_company_name';
 const COMPANY_ADDRESS_KEY = 'invoice_company_address';
+const INVOICE_NUMBER_KEY = 'invoice_last_number';
 const CUSTOMER_HISTORY_KEY = 'invoice_customer_history';
 
 function loadCustomerHistory(): string[] {
@@ -42,7 +43,12 @@ async function parseArrayBuffer(buffer: ArrayBuffer): Promise<{
 }
 
 export function useInvoiceLogic() {
-    const [invoiceNumber, setInvoiceNumber] = useState(5091);
+    const [invoiceNumber, setInvoiceNumber] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return parseInt(localStorage.getItem(INVOICE_NUMBER_KEY) || '5097', 10);
+        }
+        return 5097;
+    });
     const [customerHistory, setCustomerHistory] = useState<string[]>(() => loadCustomerHistory());
     const [companyName, setCompanyNameState] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -214,6 +220,10 @@ export function useInvoiceLogic() {
             }
 
             pdf.save(`invoice_INV-${invoiceNumber}.pdf`);
+            // Auto-increment invoice number after successful PDF generation
+            const next = invoiceNumber + 1;
+            setInvoiceNumber(next);
+            localStorage.setItem(INVOICE_NUMBER_KEY, String(next));
         } catch (error) {
             alert('Failed to generate PDF. Error: ' + (error instanceof Error ? error.message : String(error)));
         }
