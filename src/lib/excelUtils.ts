@@ -60,13 +60,19 @@ export function calculateTotal(filteredData: any[], itemsPart2: InvoiceItem[]): 
     return filteredData.reduce((sum, row) => sum + (parseFloat(row[priceCol]) || 0), 0);
 }
 
-export function chunkData(data: any[], rowsFirst = 15, rowsOther = 22): any[][] {
+export function chunkData(data: any[], rowsFirst = 20, rowsOther = 26, rowsLast = 20): any[][] {
     if (data.length === 0) return [[]];
     const chunks: any[][] = [data.slice(0, rowsFirst)];
     let idx = rowsFirst;
     while (idx < data.length) {
         chunks.push(data.slice(idx, idx + rowsOther));
         idx += rowsOther;
+    }
+    // Ensure last chunk leaves room for TOTAL section
+    while (chunks[chunks.length - 1].length > rowsLast) {
+        const last = chunks[chunks.length - 1];
+        chunks[chunks.length - 1] = last.slice(0, rowsLast);
+        chunks.push(last.slice(rowsLast));
     }
     return chunks;
 }

@@ -17,6 +17,7 @@ export function getAuthUrl() {
   return oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
+    prompt: 'consent', // always return refresh_token
   });
 }
 
@@ -25,6 +26,11 @@ export function getAuthorizedClient() {
   if (!fs.existsSync(TOKEN_PATH)) return null;
   const token = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf8'));
   oAuth2Client.setCredentials(token);
+  // Auto-save refreshed access tokens back to disk
+  oAuth2Client.on('tokens', (newTokens) => {
+    const current = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf8'));
+    fs.writeFileSync(TOKEN_PATH, JSON.stringify({ ...current, ...newTokens }));
+  });
   return oAuth2Client;
 }
 

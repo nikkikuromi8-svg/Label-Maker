@@ -146,9 +146,25 @@ export function useInvoiceLogic() {
             const res = await fetch('/api/drive');
             const data = await res.json();
             if (data.authUrl) { window.location.href = data.authUrl; return; }
+            if (data.error) {
+                setShowDriveModal(false);
+                const isAuthError = /invalid_grant|token|expired|revoked|unauthorized/i.test(data.error);
+                if (isAuthError) {
+                    const reauth = confirm('Google Drive 授權已過期，需要重新登入。點 OK 前往授權頁面。');
+                    if (reauth) {
+                        const authRes = await fetch('/api/drive?reauth=1');
+                        const authData = await authRes.json();
+                        if (authData.authUrl) window.location.href = authData.authUrl;
+                    }
+                } else {
+                    alert(`Google Drive 錯誤：${data.error}`);
+                }
+                return;
+            }
             setDriveFiles(data.files || []);
         } catch {
-            alert('Failed to load Google Drive files.');
+            setShowDriveModal(false);
+            alert('無法連接 Google Drive，請檢查網絡連接。');
         } finally {
             setIsLoadingDrive(false);
         }
@@ -184,30 +200,20 @@ export function useInvoiceLogic() {
                 import('html-to-image'),
             ]);
 
-            // Capture all pages first
-            const images: string[] = [];
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
             for (let i = 0; i < pages.length; i++) {
-                images.push(await htmlToImage.toPng(pages[i] as HTMLElement, { pixelRatio: 2, backgroundColor: '#ffffff' }));
+                const imgData = await htmlToImage.toPng(pages[i] as HTMLElement, { pixelRatio: 2, backgroundColor: '#ffffff' });
+                if (i > 0) pdf.addPage();
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgHeightMM = (imgProps.height / imgProps.width) * pdfWidth;
+                // Place image at top of A4 page, scale to full width
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, Math.min(imgHeightMM, pdfHeight));
             }
 
-            // Use A4 width (210mm), calculate height proportionally for each page
-            const A4_WIDTH_MM = 210;
-            let pdf: InstanceType<typeof jsPDF> | null = null;
-
-            for (let i = 0; i < images.length; i++) {
-                const tempPdf = new jsPDF({ unit: 'mm', format: 'a4' });
-                const imgProps = tempPdf.getImageProperties(images[i]);
-                const pageHeightMM = (imgProps.height / imgProps.width) * A4_WIDTH_MM;
-
-                if (i === 0) {
-                    pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [A4_WIDTH_MM, pageHeightMM] });
-                } else {
-                    pdf!.addPage([A4_WIDTH_MM, pageHeightMM]);
-                }
-                pdf!.addImage(images[i], 'PNG', 0, 0, A4_WIDTH_MM, pageHeightMM);
-            }
-
-            pdf!.save(`invoice_INV-${invoiceNumber}.pdf`);
+            pdf.save(`invoice_INV-${invoiceNumber}.pdf`);
         } catch (error) {
             alert('Failed to generate PDF. Error: ' + (error instanceof Error ? error.message : String(error)));
         }

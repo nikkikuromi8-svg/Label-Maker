@@ -6,14 +6,14 @@ const FOLDER_ID = '1bhyh-SMqsf4XQUqKvMZgAZX62JnCRqdO';
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = getAuthorizedClient();
-
-    if (!auth) {
-      return NextResponse.json({ authUrl: getAuthUrl() });
-    }
-
     const { searchParams } = req.nextUrl;
     const fileId = searchParams.get('fileId');
+
+    const auth = getAuthorizedClient();
+
+    if (!auth || searchParams.get('reauth')) {
+      return NextResponse.json({ authUrl: getAuthUrl() });
+    }
     const mimeType = searchParams.get('mimeType');
 
     const drive = google.drive({ version: 'v3', auth });

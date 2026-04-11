@@ -20,6 +20,8 @@ export default function DriveModal({ isLoadingDrive, driveFiles, onClose, onSele
                     <div className="flex justify-center py-8">
                         <div className="w-8 h-8 border-4 border-sky-400/30 border-t-sky-300 rounded-full animate-spin"></div>
                     </div>
+                ) : driveFiles.length === 0 ? (
+                    <p className="text-center text-gray-500 py-8 text-sm">找不到 Excel 檔案，請確認資料夾內有 .xlsx 或 Google Sheets 檔案。</p>
                 ) : (
                     <ul className="space-y-2">
                         {driveFiles.map(file => (
